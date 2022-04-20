@@ -81,7 +81,7 @@
                                 <div class="w-full">
                                     {{-- hidden --}}
                                     <input data-id="id" type="hidden" class="id" value="{{ $item->id }}">
-                                    <h3 class="namabarang text-xl font-bold">Nama Barang:</h3>
+                                    <h3 class="text-xl font-bold">Nama Barang:</h3>
                                     <h3 class="namabarang text-xl font-bold">{{ $item->name }}</h3>
                                 </div>
                                 <div class="w-full">
