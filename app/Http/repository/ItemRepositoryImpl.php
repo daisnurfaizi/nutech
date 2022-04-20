@@ -20,9 +20,18 @@ class ItemRepositoryImpl implements Item
         return $item;
     }
 
-    public function Update()
+    public function Update($request, $imagename)
     {
-        // TODO: Implement Update() method.
+        $item = ModelsItem::find($request->barangid);
+        $item->name = $request->name;
+        $item->buying_price = $request->buying_price;
+        $item->selling_price = $request->selling_price;
+        $item->quantity = $request->quantity;
+        if ($imagename != null) {
+            $item->picture = $imagename;
+        }
+        $item->save();
+        return $item;
     }
     public function Delete($param)
     {
@@ -31,8 +40,9 @@ class ItemRepositoryImpl implements Item
     }
     public function SelectAll()
     {
-        // paginate all items
-        $items = ModelsItem::paginate(10);
+        // paginate all items orderby created at
+        $items = ModelsItem::orderBy('created_at', 'desc')->paginate(10);
+        // $items = ModelsItem::paginate(10);
         return $items;
     }
     public function SelectById()

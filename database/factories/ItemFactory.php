@@ -16,13 +16,21 @@ class ItemFactory extends Factory
      */
     public function definition()
     {
+        $image = [
+            'baloon.jpg',
+            'dice.jpeg',
+            'p.png',
+        ];
+
+        // random image
+        $imageName = $image[array_rand($image)];
         return [
             // faker unique name
             'name' => $this->faker->unique()->name,
             'buying_price' => $this->faker->numberBetween(1, 100),
             'selling_price' => $this->faker->numberBetween(1, 100),
             'quantity' => $this->faker->numberBetween(1, 100),
-            'picture' => $this->faker->imageUrl(640, 480),
+            'picture' => $imageName,
         ];
     }
 }

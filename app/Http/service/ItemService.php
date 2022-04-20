@@ -18,6 +18,51 @@ class ItemService
     public function cretateItem($request)
     {
         // ajax request
+        if (!empty($request->barangid)) {
+            $rulesupdate = [
+                'name' => 'required|unique:items,name,' . $request->barangid,
+                'buying_price' => 'required|numeric',
+                'selling_price' => 'required|numeric',
+                'quantity' => 'required|numeric',
+                'picture' => 'mimes:png,jpg|max:100' . $request->barangid,
+            ];
+            $messageupdate = [
+                'name.required' => 'Nama barang is required',
+                'name.unique' => 'Nama barang is already taken',
+                'buying_price.required' => 'Harga Beli is required',
+                'buying_price.numeric' => 'Harga Beli must be numeric',
+                'selling_price.required' => 'Harga Jual is required',
+                'selling_price.numeric' => 'Harga Jual must be numeric',
+                'quantity.required' => 'Stok is required',
+                'quantity.numeric' => 'Stok must be a number',
+                // 'picture.required' => 'Picture is required',
+                'picture.mimes' => 'Picture must be a png,jpg',
+                'picture.max' => 'Picture must be less than 100kb',
+            ];
+            $validationupdate = $this->validationform($request, $rulesupdate, $messageupdate);
+            if ($validationupdate->fails()) {
+                return redirect()->back()->withErrors($validationupdate)->with('status', $validationupdate->errors());
+            }
+            $image = $request->file('picture');
+            if (!empty($image)) {
+                $imageName = time() . '.' . $image->getClientOriginalExtension();
+                $image->move(public_path('images'), $imageName);
+                $request->merge(['picture' => $imageName]);
+            } else {
+                $imageName = null;
+            }
+
+            try {
+                DB::beginTransaction();
+                $this->itemRepository->Update($request, $imageName);
+                DB::commit();
+                return redirect()->back()->with('success', 'Data berhasil diubah');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return $e;
+                return response()->json(['message' => 'Item creation failed'], 500);
+            }
+        }
         $rules = [
             'name' => 'required|unique:items',
             'buying_price' => 'required|numeric',
@@ -38,10 +83,9 @@ class ItemService
             'picture.mimes' => 'Picture must be a png,jpg',
             'picture.max' => 'Picture must be less than 100kb',
         ];
-
-        $validator = Validator::make($request->all(), $rules, $message);
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+        $validasiforminput = $this->validationform($request, $rules, $message);
+        if ($validasiforminput->fails()) {
+            return redirect()->back()->withErrors($validasiforminput)->withInput();
         }
         $image = $request->file('picture');
         $imageName = time() . '.' . $image->getClientOriginalExtension();
@@ -51,7 +95,7 @@ class ItemService
             DB::beginTransaction();
             $this->itemRepository->Insert($request, $imageName);
             DB::commit();
-            return response()->json(['message' => 'Item created successfully'], 201);
+            return redirect()->back()->with('success', 'Data berhasil ditambahkan');
         } catch (\Exception $e) {
             DB::rollBack();
             return $e;
@@ -118,5 +162,11 @@ class ItemService
             DB::rollBack();
             return response()->json(['message' => 'Item deletion failed'], 500);
         }
+    }
+
+    public function validationform($request, $rules, $message)
+    {
+        $validator = Validator::make($request->all(), $rules, $message);
+        return $validator;
     }
 }
